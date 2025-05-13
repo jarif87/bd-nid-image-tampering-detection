@@ -23,7 +23,7 @@ image-tampering-detection/
 ├── static/generated/ (created dynamically)
 ├── requirements.txt
 ├── Procfile
-├── runtime.txt
+├── .python-version
 └── README.md
 ```
 
