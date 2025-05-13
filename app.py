@@ -46,13 +46,13 @@ def index():
 
         # Save the uploaded image
         uploaded_image_path = os.path.join(app.config['INITIAL_FILE_UPLOADS'], 'image.png')
-        uploaded_image = Image.open(file_upload).resize((50, 30))
+        uploaded_image = Image.open(file_upload).resize((40, 24))
         uploaded_image.save(uploaded_image_path)
 
         # Load and resize the original image
         original_image_path = os.path.join(app.config['EXISTING_FILE'], 'original.png')
         try:
-            original_image = Image.open(original_image_path).resize((50, 30))
+            original_image = Image.open(original_image_path).resize((40, 24))
             original_image.save(original_image_path)  # Save resized version
         except FileNotFoundError:
             logger.error("Original image not found at %s", original_image_path)
