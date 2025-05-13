@@ -10,7 +10,7 @@ A Flask-based web app to detect image tampering by comparing an uploaded image a
 - Displays three images: Original (with contours), Uploaded (with contours), and Threshold (differences).
 
 ## Project Structure
-
+```
 image-tampering-detection/
 ├── app.py
 ├── templates/
@@ -25,7 +25,7 @@ image-tampering-detection/
 ├── Procfile
 ├── runtime.txt
 └── README.md
-
+```
 
 ## Prerequisites
 - Python 3.11.12 (specified in `runtime.txt`).
