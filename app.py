@@ -6,13 +6,18 @@ import numpy as np
 from PIL import Image
 import os
 import time
+import logging
 
 app = Flask(__name__)
-timestamp = str(int(time.time()))
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Configure directories
 app.config['INITIAL_FILE_UPLOADS'] = 'uploads'
 app.config['EXISTING_FILE'] = 'existing'
-app.config['GENERATED_FILE'] = 'static/generated'  # Ensure it's under static for web access
+app.config['GENERATED_FILE'] = 'static/generated'
 
 # Create directories if they don't exist
 os.makedirs(app.config['INITIAL_FILE_UPLOADS'], exist_ok=True)
@@ -35,17 +40,22 @@ def index():
         if not filename.lower().endswith(('.png', '.jpg', '.jpeg')):
             return render_template('index.html', error="Invalid file type. Only PNG, JPG, or JPEG images are allowed.")
 
+        # Check file size (5MB limit)
+        if file_upload.content_length and file_upload.content_length > 5 * 1024 * 1024:
+            return render_template('index.html', error="File too large. Maximum size is 5MB.")
+
         # Save the uploaded image
         uploaded_image_path = os.path.join(app.config['INITIAL_FILE_UPLOADS'], 'image.png')
-        uploaded_image = Image.open(file_upload).resize((250, 160))
+        uploaded_image = Image.open(file_upload).resize((50, 30))
         uploaded_image.save(uploaded_image_path)
 
         # Load and resize the original image
         original_image_path = os.path.join(app.config['EXISTING_FILE'], 'original.png')
         try:
-            original_image = Image.open(original_image_path).resize((250, 160))
+            original_image = Image.open(original_image_path).resize((50, 30))
             original_image.save(original_image_path)  # Save resized version
         except FileNotFoundError:
+            logger.error("Original image not found at %s", original_image_path)
             return render_template('index.html', error="Original image (original.png) not found on server.")
 
         # Read images with OpenCV
@@ -54,6 +64,7 @@ def index():
 
         # Check if images loaded correctly
         if original_image_cv is None or uploaded_image_cv is None:
+            logger.error("Failed to load images: original=%s, uploaded=%s", original_image_path, uploaded_image_path)
             return render_template('index.html', error="Failed to load images for processing.")
 
         # Convert to grayscale
@@ -83,12 +94,16 @@ def index():
 
         # Save images and check if successful
         if not cv2.imwrite(original_out, original_image_cv):
+            logger.error("Failed to save original image at %s", original_out)
             return render_template('index.html', error="Failed to save original image.")
         if not cv2.imwrite(uploaded_out, uploaded_image_cv):
+            logger.error("Failed to save uploaded image at %s", uploaded_out)
             return render_template('index.html', error="Failed to save uploaded image.")
         if not cv2.imwrite(diff_out, diff):
+            logger.error("Failed to save difference image at %s", diff_out)
             return render_template('index.html', error="Failed to save difference image.")
         if not cv2.imwrite(thresh_out, thresh):
+            logger.error("Failed to save threshold image at %s", thresh_out)
             return render_template('index.html', error="Failed to save threshold image.")
 
         # Generate user-friendly message based on SSIM score
@@ -99,6 +114,9 @@ def index():
             message = "The uploaded image is similar to the original but has some differences. It may have minor changes."
         else:
             message = "The uploaded image differs significantly from the original. It is likely tampered."
+
+        # Add timestamp to prevent caching
+        timestamp = str(int(time.time()))
 
         # Return results to template
         return render_template('index.html', 
