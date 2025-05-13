@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ID Card Tampering Detection</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <h1>Bangladesh National ID Card Tampering Detection</h1>
+    <form action="/" method="post" enctype="multipart/form-data">
+        <label>Upload Image:</label>
+        <input type="file" name="file_upload" accept="image/*" required><br>
+        <input type="submit" value="Compare">
+    </form>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+    {% if pred %}
+        <h2>Results</h2>
+        <p>{{ message }}</p>
+        <p>Similarity: {{ pred }}</p>
+        <img src="{{ url_for('static', filename=original_img) + '?' + timestamp }}" alt="Original" width="300" height="160">
+        <img src="{{ url_for('static', filename=uploaded_img) + '?' + timestamp }}" alt="Uploaded" width="300" height="160">
+        <img src="{{ url_for('static', filename=thresh_img) + '?' + timestamp }}" alt="Threshold" width="300" height="160">
+    {% endif %}
+</body>
+</html>
